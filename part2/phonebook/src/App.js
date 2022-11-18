@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
 import Filter from "./components/Filter";
@@ -12,7 +11,7 @@ const App = () => {
   const [newName, setNewName] = useState("")
   const [newNumber, setNewNumber] = useState("")
   const [filter, setFilter] = useState("")
-  const [message, setMessage] = useState({message: null, status: null})
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -41,7 +40,15 @@ const App = () => {
       .deletePerson(id)
       .then(() => {
         setPersons(persons.filter((p) => p.id != id ? p : null))
+        notify(`${name} number deleted`)
       })
+  }
+
+  const notify = (message, type="info") => {
+    setMessage({message, type})
+    setTimeout(() => {
+      setMessage(null)
+    }, 3000)
   }
   
   const filteredPersons = persons.filter
@@ -65,28 +72,15 @@ const App = () => {
           .update(changedPerson.id, changedPerson))
           .then((returnedPerson) => {
             setPersons(persons.map(person => 
-            person.id !== changedPerson.id 
-            ? person
-            : returnedPerson))
+              person.id !== changedPerson.id 
+              ? person
+              : returnedPerson))
             setNewName("")
             setNewNumber("")
-            setMessage({
-              message: `${returnedPerson.name} number changed`,
-              status: "ok"
-            })
-            setTimeout(() => {
-              setMessage({...message, message: null})
-            }, 5000)
+            notify(`${returnedPerson.name} number changed`)
           })
           .catch(error => {
-            setMessage({
-              message: `information of ${changedPerson.name} has already been removed from server`,
-              status: "error"
-            })
-            setTimeout(() => {
-              setMessage({...message, message: null})
-            }, 5000)
-
+            notify(`information of ${changedPerson.name} has already been removed from server`, "error")
             setPersons(persons.filter(p => p.id !== changedPerson.id))
           })
       }
@@ -104,13 +98,7 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName("")
         setNewNumber("")
-        setMessage({
-          message: `Added ${returnedPerson.name}`,
-          status: "ok"
-        })
-        setTimeout(() => {
-          setMessage({...message, message: null})
-        }, 5000)
+        notify(`Added ${returnedPerson.name}`)
       })
 
   }
